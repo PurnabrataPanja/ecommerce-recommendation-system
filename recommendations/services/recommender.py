@@ -2,6 +2,7 @@ import os
 import pickle
 import numpy as np
 from products.models import Product
+import difflib
 
 
 class RecommenderService:
@@ -27,29 +28,53 @@ class RecommenderService:
         with open(similarity_path, "rb") as f:
             data = pickle.load(f)
             self.similarity_matrix = data["matrix"]
-            self.product_ids = data["product_ids"]
+            self.id_to_index = data["id_to_index"]
 
     def get_recommendations(self, product_name, top_n=5):
-        products = Product.objects.filter(name__iexact=product_name)
 
-        if not products.exists():
+        # 1️ Try partial match first
+        product = Product.objects.filter(
+            name__icontains=product_name
+        ).first()
+
+        # 2️ If not found → use fuzzy match
+        if not product:
+            all_names = Product.objects.values_list("name", flat=True)
+
+            closest_matches = difflib.get_close_matches(
+                product_name,
+                all_names,
+                n=1,
+                cutoff=0.4
+            )
+
+            if closest_matches:
+                product = Product.objects.filter(
+                    name=closest_matches[0]
+                ).first()
+
+        if not product:
             return []
 
-        product = products.first()
         product_id = product.id
 
-        if product_id not in self.product_ids:
+        if product_id not in self.id_to_index:
             return []
 
-        index = self.product_ids.index(product_id)
+        index = self.id_to_index[product_id]
 
         similarity_scores = list(enumerate(self.similarity_matrix[index]))
-        similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
+        similarity_scores = sorted(
+            similarity_scores,
+            key=lambda x: x[1],
+            reverse=True
+        )
 
         recommended_indices = similarity_scores[1: top_n + 1]
 
         recommended_product_ids = [
-            self.product_ids[i[0]] for i in recommended_indices
-        ]
+            list(self.id_to_index.keys())[i[0]]
+            for i in recommended_indices
+            ]
 
         return Product.objects.filter(id__in=recommended_product_ids)

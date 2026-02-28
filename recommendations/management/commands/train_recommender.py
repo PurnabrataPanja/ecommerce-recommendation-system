@@ -43,9 +43,10 @@ class Command(BaseCommand):
 
         # Save similarity matrix
         with open("recommendations/ml_models/similarity_matrix.pkl", "wb") as f:
+            id_to_index = {pid: idx for idx, pid in enumerate(product_ids)}
             pickle.dump({
                 "matrix": similarity_matrix,
-                "product_ids": product_ids
+                "id_to_index": id_to_index
             }, f)
 
         self.stdout.write(self.style.SUCCESS("Recommender model trained successfully!"))

@@ -18,3 +18,5 @@ Thumbs.db
 
 data/
 *.tsv
+
+recommendations/ml_models/*.pkl

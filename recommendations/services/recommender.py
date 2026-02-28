@@ -1,0 +1,55 @@
+import os
+import pickle
+import numpy as np
+from products.models import Product
+
+
+class RecommenderService:
+
+    def __init__(self):
+        self.vectorizer = None
+        self.similarity_matrix = None
+        self.product_ids = None
+        self._load_model()
+
+    def _load_model(self):
+        base_path = "recommendations/ml_models"
+
+        vectorizer_path = os.path.join(base_path, "tfidf_vectorizer.pkl")
+        similarity_path = os.path.join(base_path, "similarity_matrix.pkl")
+
+        if not os.path.exists(vectorizer_path) or not os.path.exists(similarity_path):
+            raise Exception("Model files not found. Train the model first.")
+
+        with open(vectorizer_path, "rb") as f:
+            self.vectorizer = pickle.load(f)
+
+        with open(similarity_path, "rb") as f:
+            data = pickle.load(f)
+            self.similarity_matrix = data["matrix"]
+            self.product_ids = data["product_ids"]
+
+    def get_recommendations(self, product_name, top_n=5):
+        products = Product.objects.filter(name__iexact=product_name)
+
+        if not products.exists():
+            return []
+
+        product = products.first()
+        product_id = product.id
+
+        if product_id not in self.product_ids:
+            return []
+
+        index = self.product_ids.index(product_id)
+
+        similarity_scores = list(enumerate(self.similarity_matrix[index]))
+        similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
+
+        recommended_indices = similarity_scores[1: top_n + 1]
+
+        recommended_product_ids = [
+            self.product_ids[i[0]] for i in recommended_indices
+        ]
+
+        return Product.objects.filter(id__in=recommended_product_ids)

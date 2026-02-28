@@ -12,24 +12,28 @@ print(df.columns)
 # Create clean dataframe
 clean_df = pd.DataFrame()
 
-# Map correct columns
+# Map text columns
 clean_df["name"] = df["Product Name"]
 clean_df["brand"] = df["Product Brand"]
 clean_df["category"] = df["Product Category"]
 clean_df["description"] = df["Product Description"]
 clean_df["image_url"] = df["Product Image Url"]
 
-# Convert numeric safely FIRST
+# Convert numeric safely
 clean_df["rating"] = pd.to_numeric(df["Product Rating"], errors="coerce")
 clean_df["review_count"] = pd.to_numeric(df["Product Reviews Count"], errors="coerce")
 
-# Fill text columns with empty string
+#  ADD PRICE (IMPORTANT)
+clean_df["price"] = pd.to_numeric(df["Product Price"], errors="coerce")
+
+# Fill text columns
 text_columns = ["name", "brand", "category", "description", "image_url"]
 clean_df[text_columns] = clean_df[text_columns].fillna("")
 
-# Fill numeric columns with 0
+# Fill numeric columns
 clean_df["rating"] = clean_df["rating"].fillna(0)
 clean_df["review_count"] = clean_df["review_count"].fillna(0)
+clean_df["price"] = clean_df["price"].fillna(0)
 
 # Remove duplicates
 clean_df.drop_duplicates(subset=["name"], inplace=True)

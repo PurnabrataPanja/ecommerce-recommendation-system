@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'recommendations',
 
     "accounts",
+    "cart",
 ]
 
 MIDDLEWARE = [

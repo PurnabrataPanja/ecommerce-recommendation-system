@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 style="text-align:center;">Product Catalog</h2>
+
+<div class="container">
+    {% for product in products %}
+        <div class="card">
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.brand }}</p>
+            <p>Rating: {{ product.rating }}</p>
+
+            {% if product.image_url %}
+                <img src="{{ product.image_url }}">
+            {% endif %}
+
+            <br><br>
+            <a href="{% url 'product_detail' product.id %}">
+                View Details
+            </a>
+            <br><br>
+            <a href="{% url 'add_to_cart' product.id %}">
+                Add to Cart
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

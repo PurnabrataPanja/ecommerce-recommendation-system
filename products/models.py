@@ -9,7 +9,7 @@ class Product(models.Model):
     image_url = models.URLField(blank=True, null=True)
     rating = models.FloatField(default=0.0)
     review_count = models.IntegerField(default=0)
-
+    price = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

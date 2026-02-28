@@ -27,7 +27,15 @@
 <body>
 
 <h1>🛍 Product Recommendation System</h1>
-
+<div style="background:#34495e; padding:10px; color:white; text-align:right;">
+    {% if user.is_authenticated %}
+        Welcome {{ user.username }} |
+        <a href="/accounts/logout/" style="color:white;">Logout</a>
+    {% else %}
+        <a href="/accounts/login/" style="color:white;">Login</a> |
+        <a href="/accounts/register/" style="color:white;">Register</a>
+    {% endif %}
+</div>
 {% block content %}{% endblock %}
 
 </body>

@@ -1,71 +1,92 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div style="display:flex;">
+<div class="row">
 
     <!-- LEFT SIDEBAR -->
-    <div style="width:250px; padding:20px; border-right:1px solid #ddd;">
+    <div class="col-lg-3 mb-4">
 
-        <h3>Categories</h3>
-        <ul style="list-style:none; padding:0;">
-            <li><a href="?">All</a></li>
-            {% for cat in categories %}
+        <div class="card p-3 mb-4">
+            <h5 class="mb-3">Categories</h5>
+            <ul class="list-unstyled">
+                <li>
+                    <a href="/products/"
+                        class="text-decoration-none {% if not selected_category %}fw-bold text-dark{% endif %}">
+                        All
+                    </a>
+                </li>
+                {% for cat in categories %}
                 {% if cat %}
                 <li>
-                    <a href="?category={{ cat }}">{{ cat }}</a>
+                    <a href="?category={{ cat }}"
+                        class="text-decoration-none {% if selected_category == cat %}fw-bold text-dark{% endif %}">
+                        {{ cat }}
+                    </a>
                 </li>
                 {% endif %}
-            {% endfor %}
-        </ul>
+                {% endfor %}
+            </ul>
+        </div>
 
-        <hr>
+        <div class="card p-3 mb-4">
+            <h5 class="mb-3">Filter by Price</h5>
+            <form method="get">
+                <input type="number" name="min_price" class="form-control mb-2" placeholder="Min Price">
+                <input type="number" name="max_price" class="form-control mb-2" placeholder="Max Price">
+                <button type="submit" class="btn btn-dark w-100">Apply</button>
+            </form>
+        </div>
 
-        <h3>Filter by Price</h3>
-        <form method="get">
-            <input type="number" name="min_price" placeholder="Min Price" style="width:100%; margin-bottom:10px;">
-            <input type="number" name="max_price" placeholder="Max Price" style="width:100%; margin-bottom:10px;">
-            <button type="submit">Apply</button>
-        </form>
-
-        <hr>
-
-        <h3>Sort</h3>
-        <ul style="list-style:none; padding:0;">
-            <li><a href="?sort=price_low">Price: Low → High</a></li>
-            <li><a href="?sort=price_high">Price: High → Low</a></li>
-            <li><a href="?sort=rating">Top Rated</a></li>
-        </ul>
+        <div class="card p-3">
+            <h5 class="mb-3">Sort</h5>
+            <ul class="list-unstyled">
+                <li><a href="?sort=price_low" class="text-decoration-none">Price: Low → High</a></li>
+                <li><a href="?sort=price_high" class="text-decoration-none">Price: High → Low</a></li>
+                <li><a href="?sort=rating" class="text-decoration-none">Top Rated</a></li>
+            </ul>
+        </div>
 
     </div>
 
-
     <!-- PRODUCT GRID -->
-    <div style="flex:1; padding:20px;">
+    <div class="col-lg-9">
 
-        <!-- Search Bar -->
-        <form method="get" style="margin-bottom:20px;">
-            <input type="text" name="search" placeholder="Search products..." style="width:60%;">
-            <button type="submit">Search</button>
-        </form>
-
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px;">
+        <div class="row g-4">
 
             {% for product in products %}
-            <div style="border:1px solid #ccc; padding:15px;">
+            <div class="col-xl-3 col-lg-4 col-md-6">
 
-                <a href="{% url 'product_detail' product.id %}">
-                    {% if product.image_url %}
-                        <img src="{{ product.image_url }}" style="width:100%; height:200px; object-fit:cover;">
-                    {% endif %}
-                    <h4>{{ product.name|truncatechars:40 }}</h4>
-                </a>
+                <div class="card h-100 p-3 text-center">
 
-                <p><strong>₹ {{ product.price }}</strong></p>
-                <p>⭐ {{ product.rating }}</p>
+                    <a href="{% url 'product_detail' product.id %}" class="text-decoration-none text-dark">
 
-                <a href="{% url 'add_to_cart' product.id %}">
-                    Add to Cart
-                </a>
+                        {% if product.image_url %}
+                        <img src="{{ product.image_url }}" class="product-image mb-3" alt="{{ product.name }}">
+                        {% else %}
+                        <div class="product-image mb-3 d-flex align-items-center justify-content-center text-muted">
+                            <img src="https://via.placeholder.com/200x200?text=No+Image" class="product-image mb-3"
+                                alt="No image">
+                        </div>
+                        {% endif %}
+
+                        <h6 class="mb-2">
+                            {{ product.name|truncatechars:45 }}
+                        </h6>
+                    </a>
+
+                    <div class="price mb-1">
+                        ₹ {{ product.price|default:"0.00" }}
+                    </div>
+
+                    <div class="rating mb-3">
+                        ⭐ {{ product.rating }}
+                    </div>
+
+                    <a href="{% url 'add_to_cart' product.id %}" class="btn btn-outline-dark btn-sm">
+                        Add to Cart
+                    </a>
+
+                </div>
 
             </div>
             {% endfor %}

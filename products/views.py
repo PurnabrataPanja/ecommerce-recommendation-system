@@ -1,5 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Q, Case, When, IntegerField
+from django.core.paginator import Paginator
+from urllib.parse import urlencode
+
 from .models import Product
 from recommendations.services.recommender import RecommenderService
 
@@ -57,6 +60,18 @@ def product_list_view(request):
     else:
         products = products.order_by("-has_image", "-created_at")
 
+    # ----------------------------
+    # PAGINATION (INDUSTRY LEVEL)
+    # ----------------------------
+    paginator = Paginator(products, 12)  # 12 products per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Preserve existing query parameters except 'page'
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+    query_string = urlencode(query_params)
+
     # CLEAN SIDEBAR CATEGORIES
     raw_categories = Product.objects.values_list("category", flat=True).distinct()
 
@@ -69,9 +84,10 @@ def product_list_view(request):
     categories = sorted(cleaned_categories)
 
     return render(request, "products/product_list.html", {
-        "products": products[:60],
+        "page_obj": page_obj,
         "categories": categories,
         "selected_category": selected_category,
+        "query_string": query_string,
     })
 
 

@@ -14,16 +14,11 @@
 
                 <!-- IMAGE -->
                 <div class="col-md-2 text-center">
-                    {% if item.product.image_url %}
-                        <img src="{{ item.product.image_url }}"
-                             class="img-fluid rounded"
-                             style="max-height:120px; object-fit:contain;"
-                             alt="{{ item.product.name }}">
-                    {% else %}
-                        <img src="https://via.placeholder.com/120x120?text=No+Image"
-                             class="img-fluid rounded"
-                             alt="No image">
-                    {% endif %}
+                    <img src="{{ item.product.image_url|default:'' }}"
+                         class="img-fluid rounded"
+                         style="max-height:120px; object-fit:contain;"
+                         alt="{{ item.product.name }}"
+                         onerror="this.onerror=null; this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJSulzHFd9nCoKCX0vDuRdTPgpiQSc-qJM6qj1Aq9saZ_gHz-ThBCy8Wg&s';">
                 </div>
 
                 <!-- DETAILS -->
@@ -64,7 +59,7 @@
 
                 </div>
 
-                <!-- SUBTOTAL -->
+                <!-- PRICE -->
                 <div class="col-md-2 text-center">
                     ₹ {{ item.product.price|floatformat:2 }}
                 </div>
@@ -82,10 +77,16 @@
         </div>
         {% endfor %}
 
+        <!-- TOTAL + CHECKOUT -->
         <div class="text-end mt-4">
             <h4>
                 Total: ₹ {{ total|floatformat:2 }}
             </h4>
+
+            <a href="{% url 'checkout_review' %}"
+               class="btn btn-dark mt-3">
+                Proceed to Checkout
+            </a>
         </div>
 
     {% else %}

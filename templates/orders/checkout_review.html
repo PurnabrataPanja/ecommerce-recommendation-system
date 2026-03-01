@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container my-5">
+
+    <h2 class="mb-4">Review Your Order</h2>
+
+{% for item in cart_items %}
+<div class="card mb-3 p-3">
+    <div class="row align-items-center">
+
+        <div class="col-md-6">
+            {{ item.product.name }}
+        </div>
+
+        <div class="col-md-2">
+            Quantity: {{ item.quantity }}
+        </div>
+
+        <div class="col-md-4 text-end">
+            ₹ {{ item.price|floatformat:2 }} × {{ item.quantity }}
+            &nbsp; =  &nbsp; ₹ {{ item.subtotal|floatformat:2 }}
+        </div>
+
+    </div>
+</div>
+{% endfor %}
+
+    <div class="text-end mt-4">
+        <h4>Total: ₹ {{ total }}</h4>
+    </div>
+
+    <form method="POST" action="{% url 'confirm_order' %}" class="text-end mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-dark">
+            Confirm Order
+        </button>
+    </form>
+
+</div>
+
+{% endblock %}

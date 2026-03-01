@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import CartItem
 from products.models import Product
+from decimal import Decimal
 
 
 @login_required
@@ -60,12 +61,11 @@ def update_cart_quantity(request, product_id):
 def view_cart(request):
     cart_items = CartItem.objects.filter(user=request.user)
 
-    total = 0
-    for item in cart_items:
-        price = item.product.price or 0
-        total += price * item.quantity
+    total = Decimal("0.00")
 
-    total = round(total, 2)
+    for item in cart_items:
+        price = item.product.price or Decimal("0.00")
+        total += price * item.quantity
 
     return render(request, "cart/cart.html", {
         "cart_items": cart_items,

@@ -101,5 +101,6 @@ def product_detail_view(request, pk):
 
     return render(request, "products/product_detail.html", {
         "product": product,
-        "recommendations": recommendations
+        "recommendations": recommendations,
+        "quantity_range": range(1, 6),  
     })

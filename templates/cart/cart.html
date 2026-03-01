@@ -2,22 +2,81 @@
 
 {% block content %}
 
-<h2 style="text-align:center;">Your Cart</h2>
+<div class="container my-5">
 
-<div style="width:60%; margin:auto;">
+    <h2 class="text-center mb-4">Your Cart</h2>
 
-{% for item in cart_items %}
-    <div style="margin:20px; padding:20px; background:white;">
-        <h4>{{ item.product.name }}</h4>
-        <p>Quantity: {{ item.quantity }}</p>
-        <p>Price: {{ item.product.price }}</p>
-        <a href="{% url 'remove_from_cart' item.product.id %}">Remove</a>
-    </div>
-{% empty %}
-    <p>Your cart is empty.</p>
-{% endfor %}
+    {% if cart_items %}
 
-<h3>Total: {{ total }}</h3>
+        {% for item in cart_items %}
+        <div class="card mb-3 p-3 shadow-sm">
+
+            <div class="row align-items-center">
+
+                <!-- PRODUCT IMAGE -->
+                <div class="col-md-2 text-center">
+                    {% if item.product.image_url %}
+                        <img src="{{ item.product.image_url }}"
+                             class="img-fluid rounded"
+                             style="max-height:120px; object-fit:contain;"
+                             alt="{{ item.product.name }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/120x120?text=No+Image"
+                             class="img-fluid rounded"
+                             alt="No image">
+                    {% endif %}
+                </div>
+
+                <!-- PRODUCT DETAILS -->
+                <div class="col-md-5">
+                    <h5 class="mb-2">
+                        {{ item.product.name }}
+                    </h5>
+                    <div class="text-muted">
+                        Quantity: {{ item.quantity }}
+                    </div>
+                </div>
+
+                <!-- PRICE -->
+                <div class="col-md-2">
+                    <strong>
+                        ₹ {{ item.product.price|floatformat:2 }}
+                    </strong>
+                </div>
+
+                <!-- SUBTOTAL -->
+                <div class="col-md-2">
+                    ₹ {{ item.product.price|floatformat:2|floatformat }} × {{ item.quantity }}
+                </div>
+
+                <!-- REMOVE -->
+                <div class="col-md-1 text-end">
+                    <a href="{% url 'remove_from_cart' item.product.id %}"
+                       class="text-danger text-decoration-none">
+                        Remove
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+
+        <!-- TOTAL -->
+        <div class="text-end mt-4">
+            <h4>
+                Total: ₹ {{ total|floatformat:2 }}
+            </h4>
+        </div>
+
+    {% else %}
+        <div class="text-center mt-5">
+            <h5>Your cart is empty.</h5>
+            <a href="/products/" class="btn btn-dark mt-3">
+                Continue Shopping
+            </a>
+        </div>
+    {% endif %}
 
 </div>
 

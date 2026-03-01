@@ -1,49 +1,60 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="row">
+<div class="row align-items-start">
 
     <!-- LEFT SIDEBAR -->
-    <div class="col-lg-3 mb-4">
+    <div class="col-lg-3">
 
-        <div class="card p-3 mb-4">
-            <h5 class="mb-3">Categories</h5>
-            <ul class="list-unstyled">
-                <li>
-                    <a href="/products/"
-                        class="text-decoration-none {% if not selected_category %}fw-bold text-dark{% endif %}">
-                        All
-                    </a>
-                </li>
-                {% for cat in categories %}
-                {% if cat %}
-                <li>
-                    <a href="?category={{ cat }}"
-                        class="text-decoration-none {% if selected_category == cat %}fw-bold text-dark{% endif %}">
-                        {{ cat }}
-                    </a>
-                </li>
-                {% endif %}
-                {% endfor %}
-            </ul>
-        </div>
+        <div class="sidebar-wrapper">
 
-        <div class="card p-3 mb-4">
-            <h5 class="mb-3">Filter by Price</h5>
-            <form method="get">
-                <input type="number" name="min_price" class="form-control mb-2" placeholder="Min Price">
-                <input type="number" name="max_price" class="form-control mb-2" placeholder="Max Price">
-                <button type="submit" class="btn btn-dark w-100">Apply</button>
-            </form>
-        </div>
+            <!-- Categories -->
+            <div class="card p-3 mb-4">
+                <h5 class="mb-3">Categories</h5>
 
-        <div class="card p-3">
-            <h5 class="mb-3">Sort</h5>
-            <ul class="list-unstyled">
-                <li><a href="?sort=price_low" class="text-decoration-none">Price: Low → High</a></li>
-                <li><a href="?sort=price_high" class="text-decoration-none">Price: High → Low</a></li>
-                <li><a href="?sort=rating" class="text-decoration-none">Top Rated</a></li>
-            </ul>
+                <div class="category-scroll">
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="/products/"
+                               class="text-decoration-none {% if not selected_category %}fw-bold text-dark{% endif %}">
+                               All
+                            </a>
+                        </li>
+
+                        {% for cat in categories %}
+                            {% if cat %}
+                            <li>
+                                <a href="?category={{ cat }}"
+                                   class="text-decoration-none {% if selected_category == cat %}fw-bold text-dark{% endif %}">
+                                   {{ cat }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="card p-3 mb-4">
+                <h5 class="mb-3">Filter by Price</h5>
+                <form method="get">
+                    <input type="number" name="min_price" class="form-control mb-2" placeholder="Min Price">
+                    <input type="number" name="max_price" class="form-control mb-2" placeholder="Max Price">
+                    <button type="submit" class="btn btn-dark w-100">Apply</button>
+                </form>
+            </div>
+
+            <!-- Sort -->
+            <div class="card p-3">
+                <h5 class="mb-3">Sort</h5>
+                <ul class="list-unstyled mb-0">
+                    <li><a href="?sort=price_low" class="text-decoration-none">Price: Low → High</a></li>
+                    <li><a href="?sort=price_high" class="text-decoration-none">Price: High → Low</a></li>
+                    <li><a href="?sort=rating" class="text-decoration-none">Top Rated</a></li>
+                </ul>
+            </div>
+
         </div>
 
     </div>
@@ -61,7 +72,9 @@
                     <a href="{% url 'product_detail' product.id %}" class="text-decoration-none text-dark">
 
                         {% if product.image_url %}
-                        <img src="{{ product.image_url }}" class="product-image mb-3" alt="{{ product.name }}">
+                        <img src="{{ product.image_url }}"
+                             class="product-image mb-3"
+                             alt="{{ product.name }}">
                         {% else %}
                         <img src="https://via.placeholder.com/200x200?text=No+Image"
                              class="product-image mb-3"
@@ -81,8 +94,9 @@
                         ⭐ {{ product.rating }}
                     </div>
 
-                    <a href="{% url 'add_to_cart' product.id %}" class="btn btn-outline-dark btn-sm">
-                        Add to Cart
+                    <a href="{% url 'add_to_cart' product.id %}"
+                       class="btn btn-outline-dark btn-sm">
+                       Add to Cart
                     </a>
 
                 </div>
@@ -92,90 +106,84 @@
 
         </div>
 
-        <!-- PAGINATION UI -->
-<div class="mt-5 d-flex justify-content-center">
-    <nav>
-        <ul class="pagination">
+        <!-- PAGINATION (RESTORED) -->
+        <div class="mt-5 d-flex justify-content-center">
+            <nav>
+                <ul class="pagination">
 
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">
-                   Previous
-                </a>
-            </li>
-            {% endif %}
-
-            {% with total_pages=page_obj.paginator.num_pages current_page=page_obj.number %}
-
-                <!-- Always show first page -->
-                {% if current_page > 3 %}
-                <li class="page-item">
-                    <a class="page-link"
-                       href="?page=1{% if query_string %}&{{ query_string }}{% endif %}">
-                       1
-                    </a>
-                </li>
-
-                {% if current_page > 4 %}
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
-                </li>
-                {% endif %}
-                {% endif %}
-
-                <!-- Pages around current -->
-                {% for num in page_obj.paginator.page_range %}
-                    {% if num >= current_page|add:'-2' and num <= current_page|add:'2' %}
-                        {% if num > 0 and num <= total_pages %}
-                            {% if num == current_page %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                            {% else %}
-                            <li class="page-item">
-                                <a class="page-link"
-                                   href="?page={{ num }}{% if query_string %}&{{ query_string }}{% endif %}">
-                                   {{ num }}
-                                </a>
-                            </li>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-
-                <!-- Always show last page -->
-                {% if current_page < total_pages|add:'-2' %}
-                
-                    {% if current_page < total_pages|add:'-3' %}
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                    {% endif %}
-
+                    {% if page_obj.has_previous %}
                     <li class="page-item">
                         <a class="page-link"
-                           href="?page={{ total_pages }}{% if query_string %}&{{ query_string }}{% endif %}">
-                           {{ total_pages }}
+                           href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">
+                           Previous
                         </a>
                     </li>
+                    {% endif %}
 
-                {% endif %}
+                    {% with total_pages=page_obj.paginator.num_pages current_page=page_obj.number %}
 
-            {% endwith %}
+                        {% if current_page > 3 %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page=1{% if query_string %}&{{ query_string }}{% endif %}">
+                               1
+                            </a>
+                        </li>
 
-            {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link"
-                   href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">
-                   Next
-                </a>
-            </li>
-            {% endif %}
+                        {% if current_page > 4 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        {% endif %}
 
-        </ul>
-    </nav>
-</div>
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num >= current_page|add:'-2' and num <= current_page|add:'2' %}
+                                {% if num == current_page %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                                {% else %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ num }}{% if query_string %}&{{ query_string }}{% endif %}">
+                                       {{ num }}
+                                    </a>
+                                </li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if current_page < total_pages|add:'-2' %}
+                            {% if current_page < total_pages|add:'-3' %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?page={{ total_pages }}{% if query_string %}&{{ query_string }}{% endif %}">
+                                   {{ total_pages }}
+                                </a>
+                            </li>
+                        {% endif %}
+
+                    {% endwith %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">
+                           Next
+                        </a>
+                    </li>
+                    {% endif %}
+
+                </ul>
+            </nav>
+        </div>
+
     </div>
 
 </div>

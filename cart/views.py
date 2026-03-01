@@ -1,4 +1,4 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import CartItem
 from products.models import Product
@@ -6,16 +6,32 @@ from products.models import Product
 
 @login_required
 def add_to_cart(request, product_id):
-    product = Product.objects.get(id=product_id)
+    product = get_object_or_404(Product, id=product_id)
 
+    # Default quantity
+    quantity = 1
+
+    # If coming from POST (product detail page)
+    if request.method == "POST":
+        try:
+            quantity = int(request.POST.get("quantity", 1))
+            if quantity < 1:
+                quantity = 1
+        except (ValueError, TypeError):
+            quantity = 1
+
+    # Get or create cart item
     cart_item, created = CartItem.objects.get_or_create(
         user=request.user,
         product=product
     )
 
-    if not created:
-        cart_item.quantity += 1
-        cart_item.save()
+    if created:
+        cart_item.quantity = quantity
+    else:
+        cart_item.quantity += quantity
+
+    cart_item.save()
 
     return redirect("view_cart")
 
@@ -29,6 +45,7 @@ def view_cart(request):
         price = item.product.price or 0
         total += price * item.quantity
 
+    total = round(total, 2)
     return render(request, "cart/cart.html", {
         "cart_items": cart_items,
         "total": total

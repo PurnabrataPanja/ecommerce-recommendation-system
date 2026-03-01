@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
 
 <div class="container my-5">
@@ -13,7 +12,7 @@
 
             <div class="row align-items-center">
 
-                <!-- PRODUCT IMAGE -->
+                <!-- IMAGE -->
                 <div class="col-md-2 text-center">
                     {% if item.product.image_url %}
                         <img src="{{ item.product.image_url }}"
@@ -27,26 +26,47 @@
                     {% endif %}
                 </div>
 
-                <!-- PRODUCT DETAILS -->
-                <div class="col-md-5">
+                <!-- DETAILS -->
+                <div class="col-md-4">
                     <h5 class="mb-2">
                         {{ item.product.name }}
                     </h5>
-                    <div class="text-muted">
-                        Quantity: {{ item.quantity }}
-                    </div>
                 </div>
 
-                <!-- PRICE -->
-                <div class="col-md-2">
-                    <strong>
-                        ₹ {{ item.product.price|floatformat:2 }}
-                    </strong>
+                <!-- QUANTITY CONTROLS -->
+                <div class="col-md-3 text-center">
+
+                    <div class="d-flex justify-content-center align-items-center">
+
+                        <!-- Decrease -->
+                        <form method="POST"
+                              action="{% url 'update_cart_quantity' item.product.id %}"
+                              class="me-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="decrease">
+                            <button class="btn btn-outline-dark btn-sm">−</button>
+                        </form>
+
+                        <span class="fw-bold mx-2">
+                            {{ item.quantity }}
+                        </span>
+
+                        <!-- Increase -->
+                        <form method="POST"
+                              action="{% url 'update_cart_quantity' item.product.id %}"
+                              class="ms-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="increase">
+                            <button class="btn btn-outline-dark btn-sm">+</button>
+                        </form>
+
+                    </div>
+
                 </div>
 
                 <!-- SUBTOTAL -->
-                <div class="col-md-2">
-                    ₹ {{ item.product.price|floatformat:2|floatformat }} × {{ item.quantity }}
+                <div class="col-md-2 text-center">
+                    ₹ {{ item.product.price|floatformat:2 }}
                 </div>
 
                 <!-- REMOVE -->
@@ -62,7 +82,6 @@
         </div>
         {% endfor %}
 
-        <!-- TOTAL -->
         <div class="text-end mt-4">
             <h4>
                 Total: ₹ {{ total|floatformat:2 }}

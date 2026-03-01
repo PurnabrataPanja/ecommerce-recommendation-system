@@ -8,10 +8,7 @@ from products.models import Product
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
-    # Default quantity
     quantity = 1
-
-    # If coming from POST (product detail page)
     if request.method == "POST":
         try:
             quantity = int(request.POST.get("quantity", 1))
@@ -20,7 +17,6 @@ def add_to_cart(request, product_id):
         except (ValueError, TypeError):
             quantity = 1
 
-    # Get or create cart item
     cart_item, created = CartItem.objects.get_or_create(
         user=request.user,
         product=product
@@ -32,6 +28,30 @@ def add_to_cart(request, product_id):
         cart_item.quantity += quantity
 
     cart_item.save()
+    return redirect("view_cart")
+
+
+@login_required
+def update_cart_quantity(request, product_id):
+    if request.method == "POST":
+        cart_item = get_object_or_404(
+            CartItem,
+            user=request.user,
+            product_id=product_id
+        )
+
+        action = request.POST.get("action")
+
+        if action == "increase":
+            cart_item.quantity += 1
+
+        elif action == "decrease":
+            cart_item.quantity -= 1
+            if cart_item.quantity <= 0:
+                cart_item.delete()
+                return redirect("view_cart")
+
+        cart_item.save()
 
     return redirect("view_cart")
 
@@ -46,6 +66,7 @@ def view_cart(request):
         total += price * item.quantity
 
     total = round(total, 2)
+
     return render(request, "cart/cart.html", {
         "cart_items": cart_items,
         "total": total

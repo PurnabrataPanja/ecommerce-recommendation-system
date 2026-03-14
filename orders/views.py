@@ -4,6 +4,7 @@ from django.db import transaction
 from decimal import Decimal
 from cart.models import CartItem
 from .models import Order, OrderItem
+from django.http import HttpResponseBadRequest
 
 
 @login_required
@@ -51,11 +52,10 @@ def confirm_order(request):
         total += item.product.price * item.quantity
 
     order = Order.objects.create(
-        user=request.user,
-        total_amount=total,
-        status="COMPLETED"
-    )
-
+    user=request.user,
+    total_amount=total,
+    status="PENDING"
+)
     for item in cart_items:
         OrderItem.objects.create(
             order=order,
@@ -66,18 +66,24 @@ def confirm_order(request):
 
     cart_items.delete()
 
-    return redirect("order_success", order_id=order.id)
+    return redirect("payment_page", order_id=order.id)
 
 
 @login_required
+@login_required
 def order_success(request, order_id):
 
-    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order = Order.objects.get(id=order_id, user=request.user)
+
+    if order.status == "PENDING":
+        return redirect("payment_page", order_id=order.id)
+
+    if order.status == "CANCELLED":
+        return redirect("order_failed", order_id=order.id)
 
     return render(request, "orders/order_success.html", {
         "order": order
     })
-
 
 @login_required
 def order_history(request):
@@ -86,4 +92,59 @@ def order_history(request):
 
     return render(request, "orders/order_history.html", {
         "orders": orders
+    })
+
+
+
+
+
+@login_required
+def payment_page(request, order_id):
+
+    order = Order.objects.get(id=order_id, user=request.user)
+
+    if order.status != "PENDING":
+        return redirect("order_success", order_id=order.id)
+
+    return render(request, "orders/payment_page.html", {
+        "order": order
+    })
+
+
+@login_required
+@transaction.atomic
+def process_payment(request, order_id):
+
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid request")
+
+    order = Order.objects.select_for_update().get(
+        id=order_id,
+        user=request.user
+    )
+
+    if order.status != "PENDING":
+        return redirect("order_success", order_id=order.id)
+
+    # 🔥 Fake payment success simulation
+    payment_result = request.POST.get("payment_result")
+
+    if payment_result == "success":
+        order.status = "COMPLETED"
+        order.save()
+        return redirect("order_success", order_id=order.id)
+
+    else:
+        order.status = "CANCELLED"
+        order.save()
+        return redirect("order_failed", order_id=order.id)
+
+
+@login_required
+def order_failed(request, order_id):
+
+    order = Order.objects.get(id=order_id, user=request.user)
+
+    return render(request, "orders/order_failed.html", {
+        "order": order
     })

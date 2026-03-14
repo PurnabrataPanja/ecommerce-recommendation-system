@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container my-5 text-center">
+
+    <h2>Payment Failed</h2>
+
+    <p>Your payment for Order #{{ order.id }} was not successful.</p>
+
+    <a href="{% url 'payment_page' order.id %}"
+       class="btn btn-dark mt-3">
+        Try Again
+    </a>
+
+</div>
+
+{% endblock %}

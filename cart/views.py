@@ -4,6 +4,8 @@ from .models import CartItem
 from products.models import Product
 from decimal import Decimal
 
+MAX_QUANTITY = 99
+
 
 @login_required
 def add_to_cart(request, product_id):
@@ -15,6 +17,8 @@ def add_to_cart(request, product_id):
             quantity = int(request.POST.get("quantity", 1))
             if quantity < 1:
                 quantity = 1
+            elif quantity > MAX_QUANTITY:
+                quantity = MAX_QUANTITY
         except (ValueError, TypeError):
             quantity = 1
 
@@ -27,6 +31,8 @@ def add_to_cart(request, product_id):
         cart_item.quantity = quantity
     else:
         cart_item.quantity += quantity
+        if cart_item.quantity > MAX_QUANTITY:
+            cart_item.quantity = MAX_QUANTITY
 
     cart_item.save()
     return redirect("view_cart")
@@ -44,7 +50,8 @@ def update_cart_quantity(request, product_id):
         action = request.POST.get("action")
 
         if action == "increase":
-            cart_item.quantity += 1
+            if cart_item.quantity < MAX_QUANTITY:
+                cart_item.quantity += 1
 
         elif action == "decrease":
             cart_item.quantity -= 1
@@ -59,7 +66,7 @@ def update_cart_quantity(request, product_id):
 
 @login_required
 def view_cart(request):
-    cart_items = CartItem.objects.filter(user=request.user)
+    cart_items = CartItem.objects.filter(user=request.user).select_related("product")
 
     total = Decimal("0.00")
 

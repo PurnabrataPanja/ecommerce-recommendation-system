@@ -1,12 +1,35 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Q, Case, When, IntegerField
 from django.core.paginator import Paginator
+from django.core.cache import cache
 from urllib.parse import urlencode
 
 from .models import Product
 from recommendations.services.recommender import RecommenderService
 
-recommender_service = RecommenderService()
+_recommender_service = None
+
+def get_recommender_service():
+    global _recommender_service
+    if _recommender_service is None:
+        _recommender_service = RecommenderService()
+    return _recommender_service
+
+
+def _clean_categories():
+    """Clean and extract main categories from products with caching."""
+    cache_key = 'cleaned_categories'
+    categories = cache.get(cache_key)
+    if categories is None:
+        raw_categories = Product.objects.values_list("category", flat=True).distinct()
+        cleaned_categories = set()
+        for cat in raw_categories:
+            if cat:
+                main_cat = cat.split(">")[0].strip()
+                cleaned_categories.add(main_cat)
+        categories = sorted(cleaned_categories)
+        cache.set(cache_key, categories, 3600)  # Cache for 1 hour
+    return categories
 
 
 def product_list_view(request):
@@ -34,10 +57,20 @@ def product_list_view(request):
     max_price = request.GET.get("max_price")
 
     if min_price:
-        products = products.filter(price__gte=min_price)
+        try:
+            min_price = float(min_price)
+            if min_price >= 0:
+                products = products.filter(price__gte=min_price)
+        except ValueError:
+            pass  # Ignore invalid input
 
     if max_price:
-        products = products.filter(price__lte=max_price)
+        try:
+            max_price = float(max_price)
+            if max_price >= 0:
+                products = products.filter(price__lte=max_price)
+        except ValueError:
+            pass  # Ignore invalid input
 
     # PRIORITIZE PRODUCTS WITH IMAGES
     products = products.annotate(
@@ -73,15 +106,7 @@ def product_list_view(request):
     query_string = urlencode(query_params)
 
     # CLEAN SIDEBAR CATEGORIES
-    raw_categories = Product.objects.values_list("category", flat=True).distinct()
-
-    cleaned_categories = set()
-    for cat in raw_categories:
-        if cat:
-            main_cat = cat.split(">")[0].strip()
-            cleaned_categories.add(main_cat)
-
-    categories = sorted(cleaned_categories)
+    categories = _clean_categories()
 
     return render(request, "products/product_list.html", {
         "page_obj": page_obj,
@@ -94,7 +119,7 @@ def product_list_view(request):
 def product_detail_view(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
-    recommendations = recommender_service.get_recommendations(
+    recommendations = get_recommender_service().get_recommendations(
         product.name,
         top_n=4
     )

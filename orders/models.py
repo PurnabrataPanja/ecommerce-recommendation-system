@@ -59,3 +59,6 @@ class OrderItem(models.Model):
 
     def get_subtotal(self):
         return self.price * self.quantity
+
+    def __str__(self):
+        return f"{self.order.id} - {self.product.name if self.product else 'Deleted Product'}"

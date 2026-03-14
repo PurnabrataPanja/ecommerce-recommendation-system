@@ -70,10 +70,9 @@ def confirm_order(request):
 
 
 @login_required
-@login_required
 def order_success(request, order_id):
 
-    order = Order.objects.get(id=order_id, user=request.user)
+    order = get_object_or_404(Order, id=order_id, user=request.user)
 
     if order.status == "PENDING":
         return redirect("payment_page", order_id=order.id)
@@ -101,7 +100,7 @@ def order_history(request):
 @login_required
 def payment_page(request, order_id):
 
-    order = Order.objects.get(id=order_id, user=request.user)
+    order = get_object_or_404(Order, id=order_id, user=request.user)
 
     if order.status != "PENDING":
         return redirect("order_success", order_id=order.id)
@@ -126,7 +125,8 @@ def process_payment(request, order_id):
     if order.status != "PENDING":
         return redirect("order_success", order_id=order.id)
 
-    # 🔥 Fake payment success simulation
+    # 🔥 SECURITY ISSUE: Fake payment processing - anyone can POST success=true
+    # TODO: Replace with real payment gateway (Stripe, PayPal) with cryptographic verification
     payment_result = request.POST.get("payment_result")
 
     if payment_result == "success":
@@ -143,7 +143,7 @@ def process_payment(request, order_id):
 @login_required
 def order_failed(request, order_id):
 
-    order = Order.objects.get(id=order_id, user=request.user)
+    order = get_object_or_404(Order, id=order_id, user=request.user)
 
     return render(request, "orders/order_failed.html", {
         "order": order

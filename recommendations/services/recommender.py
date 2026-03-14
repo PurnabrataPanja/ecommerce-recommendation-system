@@ -6,6 +6,7 @@ import difflib
 
 
 class RecommenderService:
+    """Service for generating product recommendations using TF-IDF and cosine similarity."""
 
     def __init__(self):
         self.vectorizer = None
@@ -14,6 +15,7 @@ class RecommenderService:
         self._load_model()
 
     def _load_model(self):
+        """Load pre-trained TF-IDF vectorizer and similarity matrix from disk."""
         base_path = "recommendations/ml_models"
 
         vectorizer_path = os.path.join(base_path, "tfidf_vectorizer.pkl")
@@ -22,6 +24,8 @@ class RecommenderService:
         if not os.path.exists(vectorizer_path) or not os.path.exists(similarity_path):
             raise Exception("Model files not found. Train the model first.")
 
+        # SECURITY WARNING: pickle.load() is vulnerable to arbitrary code execution
+        # if the pickle file is tampered with. Consider using safer serialization like JSON.
         with open(vectorizer_path, "rb") as f:
             self.vectorizer = pickle.load(f)
 
@@ -31,6 +35,7 @@ class RecommenderService:
             self.id_to_index = data["id_to_index"]
 
     def get_recommendations(self, product_name, top_n=5):
+        """Get product recommendations based on similarity to the given product name."""
 
         # 1️ Try partial match first
         product = Product.objects.filter(

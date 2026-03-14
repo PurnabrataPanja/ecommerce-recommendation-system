@@ -9,5 +9,10 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     added_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'product'], name='unique_cart_item')
+        ]
+
     def __str__(self):
         return f"{self.user.username} - {self.product.name}"
